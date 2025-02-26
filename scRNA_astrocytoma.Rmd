@@ -416,13 +416,13 @@ library(Seurat)
 
 if (!file.exists("Wang_tumor_seurat.rds")) {
 THY1_Wang <- FetchData(Wang_tumor_seurat, vars = "THY1")
-Wang_tumor_seurat$THY1_Wang <- ifelse(THY1_Wang > 0.1, "THY1+", "THY1-")
+Wang_tumor_seurat$THY1_Wang <- ifelse(THY1_Wang > 0, "THY1+", "THY1-")
 EGFR_Wang <- FetchData(Wang_tumor_seurat, vars = "EGFR")
-Wang_tumor_seurat$EGFR_Wang<- ifelse(EGFR_Wang > 0.1, "EGFR+", "EGFR-")
+Wang_tumor_seurat$EGFR_Wang<- ifelse(EGFR_Wang > 0, "EGFR+", "EGFR-")
 CD24_Wang <- FetchData(Wang_tumor_seurat, vars = "CD24")
-Wang_tumor_seurat$CD24_Wang <- ifelse(CD24_Wang > 0.1, "CD24+", "CD24-")
-MGMT_Wang <- FetchData(Wang_tumor_seurat, vars = "MGMT")
-Wang_tumor_seurat$MGMT_Wang <- ifelse(MGMT_Wang > 0.1, "MGMT+", "MGMT-")
+Wang_tumor_seurat$CD24_Wang <- ifelse(CD24_Wang > 0, "CD24+", "CD24-")
+#MGMT_Wang <- FetchData(Wang_tumor_seurat, vars = "MGMT")
+#Wang_tumor_seurat$MGMT_Wang <- ifelse(MGMT_Wang > 0, "MGMT+", "MGMT-")
 
 Wang_tumor_seurat$cell <- ifelse(
   Wang_tumor_seurat$THY1_Wang == "THY1+" & Wang_tumor_seurat$EGFR_Wang == "EGFR-",
@@ -538,7 +538,7 @@ library(Seurat)
 library(gmodels)
 
 TERT_Wang <- FetchData(Wang_tumor_seurat, vars = "rna_TERT")
-Wang_tumor_seurat$TERT_Wang <- ifelse(TERT_Wang > 0.1, "TERT+", "TERT-")
+Wang_tumor_seurat$TERT_Wang <- ifelse(TERT_Wang > 0, "TERT+", "TERT-")
 VlnPlot(Wang_tumor_seurat, features = "rna_TERT", group.by = "TERT")
 CrossTable(Wang_tumor_seurat$TERT, Wang_tumor_seurat$TERT_Wang)
 rm(TERT_Wang)
@@ -634,7 +634,7 @@ GSEA.df.EGFRpos.p <- as_tibble(GSEA.res.EGFRpos.p@result)
 rm(EGFRpos.p.df.sub)
 rm(gsea.EGFRpos.p)
 rm(GSEA.res.EGFRpos.p)
-write.table(GSEA.df.EGFRpos.p,"GSEA.df.EGFRpos.p.df", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
+write.table(GSEA.df.EGFRpos.p,"GSEA.df.EGFRpos.p.tsv", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
 
 } else {
 GSEA.df.EGFRpos.p <- read.delim("GSEA.df.EGFRpos.p.df")  
@@ -672,6 +672,22 @@ EnhancedVolcano(sig_EGFRpos_recurrent,
                 lab = rownames(sig_EGFRpos_recurrent))
 ggsave("EGFRpos_recurrent.png", width = 12, height = 6)
 
+sig_EGFRpos_combined <- sig_EGFRpos_primary[sig_EGFRpos_primary$Gene %in% sig_EGFRpos_recurrent$Gene, ]
+
+EnhancedVolcano(sig_EGFRpos_combined,
+                x = "avg_log2FC",
+                y = "p_val_adj",
+                title = "Differentially expressed markers between EGFR+ and EGFR- cells",
+                subtitle = "EGFR amplified samples",
+                pCutoff = 10e-12,
+                pCutoffCol = "p_val_adj",
+                FCcutoff = 0.5,
+                pointSize = 2.0,
+                labSize = 3.0,
+                drawConnectors = TRUE,
+                lab = rownames(sig_EGFRpos_combined))
+
+ggsave("EGFRpos_combined.tiff", width = 12, height = 6)
 
 ```
 
@@ -697,7 +713,7 @@ GSEA.df.EGFRpos.r <- as_tibble(GSEA.res.EGFRpos.r@result)
 rm(EGFRpos.r.df.sub)
 rm(gsea.EGFRpos.r)
 rm(GSEA.res.EGFRpos.r)
-write.table(GSEA.df.EGFRpos.r,"GSEA.df.EGFRpos.r.df", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
+write.table(GSEA.df.EGFRpos.r,"GSEA.df.EGFRpos.r.tsv", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
 
 } else {
 GSEA.df.EGFRpos.r <- read.delim("GSEA.df.EGFRpos.r.df")  
@@ -763,7 +779,7 @@ GSEA.df.EGFRneg.p <- as_tibble(GSEA.res.EGFRneg.p@result)
 rm(EGFRneg.p.df.sub)
 rm(gsea.EGFRneg.p)
 rm(GSEA.res.EGFRneg.p)
-write.table(GSEA.df.EGFRneg.p,"GSEA.df.EGFRneg.p.df", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
+write.table(GSEA.df.EGFRneg.p,"GSEA.df.EGFRneg.p.tsv", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
 
 
 } else {
@@ -801,6 +817,20 @@ EnhancedVolcano(sig_EGFRneg_recurrent,
                 lab = rownames(sig_EGFRneg_recurrent))
 ggsave("EGFRneg_recurrent.png", width = 12, height = 6)
 
+sig_EGFRneg_combined <- sig_EGFRneg_primary[sig_EGFRneg_primary$Gene %in% sig_EGFRneg_recurrent$Gene , ]
+
+EnhancedVolcano(sig_EGFRneg_combined,
+                x = "avg_log2FC",
+                y = "p_val_adj",
+                title = "Differentially expressed markers between EGFR+ and EGFR- cells",
+                subtitle = "EGFR wild-type samples",
+                pCutoff = 10e-12,
+                pCutoffCol = "p_val_adj",
+                FCcutoff = 0.5,
+                pointSize = 2.0,
+                labSize = 3.0,
+                lab = rownames(sig_EGFRneg_combined))
+ggsave("EGFRneg_combined.tiff", width = 12, height = 6)
 
 ```
 Finally, within the EGFRwt samples in the recurrent setting (supplementary table 9), the VERHAAK_GLIOBLASTOMA_CLASSICAL and VERHAAK_GLIOBLASTOMA_PRONEURAL sets are enriched in EGFR+ cells (NES -2.78, adjusted p value 1.238314e-08) and (NES -2.07, adjusted p value 2.092531e-02), respectively. On the other hand, the VERHAAK_GLIOBLASTOMA_ MESENCHYMAL set is enriched in EGFR- cells (NES 3.03, adjusted p value 1.215676e-08). Twenty hypoxia gene sets are enriched in the EGFR- cells but none in EGFR+ cells.
@@ -825,7 +855,7 @@ GSEA.df.EGFRneg.r <- as_tibble(GSEA.res.EGFRneg.r@result)
 rm(EGFRneg.r.df.sub)
 rm(gsea.EGFRneg.r)
 rm(GSEA.res.EGFRneg.r)
-write.table(GSEA.df.EGFRneg.r,"GSEA.df.EGFRneg.r.df", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
+write.table(GSEA.df.EGFRneg.r,"GSEA.df.EGFRneg.r.tsv", sep = "\t", col.names= TRUE, row.names = FALSE, quote = FALSE)
 
 } else {
 GSEA.df.EGFRneg.r <- read.delim("GSEA.df.EGFRneg.r.df")  
@@ -882,22 +912,6 @@ vplot6 <- EnhancedVolcano(sig_EGFRneg_shared_p ,
 
 ggsave("sig_EGFRneg_shared_p.png", width = 12, height = 6)
 print(vplot6)
-
-```
-
-
-
-```{r Gene enrichment analysis}
-
-protein_FDA <- read.table("protein_class_FDA.tsv", sep="\t", header=TRUE)
-
-actionable_targets_pos <- sig_EGFRpos_shared_p[sig_EGFRpos_shared_p$Gene %in% protein_FDA$Gene,]
-actionable_targets_pos_p <- sig_EGFRpos_primary[sig_EGFRpos_primary$Gene %in% protein_FDA$Gene,]
-actionable_targets_pos_r <- sig_EGFRpos_recurrent[sig_EGFRpos_recurrent$Gene %in% protein_FDA$Gene,]
-
-actionable_targets_neg <- sig_EGFRneg_shared_p[sig_EGFRneg_shared_p$Gene %in% protein_FDA$Gene,]
-actionable_targets_neg_p <- sig_EGFRneg_primary[sig_EGFRneg_primary$Gene %in% protein_FDA$Gene,]
-actionable_targets_neg_r <- sig_EGFRneg_recurrent[sig_EGFRneg_recurrent$Gene %in% protein_FDA$Gene,]
 
 ```
 
@@ -969,17 +983,17 @@ library(Seurat)
 
 if (!file.exists("Venteicher_tumor_seurat.rds")) {
 THY1_Venteicher <- FetchData(Venteicher_tumor_seurat, vars = "THY1")
-Venteicher_tumor_seurat$THY1_Venteicher <- ifelse(THY1_Venteicher > 0.1, "THY1+", "THY1-")
+Venteicher_tumor_seurat$THY1_Venteicher <- ifelse(THY1_Venteicher > 0, "THY1+", "THY1-")
 EGFR_Venteicher <- FetchData(Venteicher_tumor_seurat, vars = "EGFR")
-Venteicher_tumor_seurat$EGFR_Venteicher<- ifelse(EGFR_Venteicher > 0.1, "EGFR+", "EGFR-")
+Venteicher_tumor_seurat$EGFR_Venteicher<- ifelse(EGFR_Venteicher > 0, "EGFR+", "EGFR-")
 CD24_Venteicher <- FetchData(Venteicher_tumor_seurat, vars = "CD24")
-Venteicher_tumor_seurat$CD24_Venteicher <- ifelse(CD24_Venteicher > 0.1, "CD24+", "CD24-")
-MGMT_Venteicher <- FetchData(Venteicher_tumor_seurat, vars = "MGMT")
-Venteicher_tumor_seurat$MGMT_Venteicher <- ifelse(MGMT_Venteicher > 0.1, "MGMT+", "MGMT-")
+Venteicher_tumor_seurat$CD24_Venteicher <- ifelse(CD24_Venteicher > 0, "CD24+", "CD24-")
+#MGMT_Venteicher <- FetchData(Venteicher_tumor_seurat, vars = "MGMT")
+#Venteicher_tumor_seurat$MGMT_Venteicher <- ifelse(MGMT_Venteicher > 0, "MGMT+", "MGMT-")
 IDH1_Venteicher <- FetchData(Venteicher_tumor_seurat, vars = "IDH1")
-Venteicher_tumor_seurat$IDH1_Venteicher <- ifelse(IDH1_Venteicher > 0.1, "IDH1+", "IDH1-")
+Venteicher_tumor_seurat$IDH1_Venteicher <- ifelse(IDH1_Venteicher > 0, "IDH1+", "IDH1-")
 PDGFRA_Venteicher <- FetchData(Venteicher_tumor_seurat, vars = "PDGFRA")
-Venteicher_tumor_seurat$PDGFRA_Venteicher <- ifelse(PDGFRA_Venteicher > 0.1, "PDGFRA+", "PDGFRA-")
+Venteicher_tumor_seurat$PDGFRA_Venteicher <- ifelse(PDGFRA_Venteicher > 0, "PDGFRA+", "PDGFRA-")
 
 Venteicher_tumor_seurat$cell <- ifelse(
   Venteicher_tumor_seurat$THY1_Venteicher == "THY1+" & Venteicher_tumor_seurat$EGFR_Venteicher == "EGFR-",
@@ -1032,7 +1046,7 @@ Venteicher_tumor_seurat <- readRDS("Venteicher_tumor_seurat.rds")
 }
 ```
 
-In IDH mutant astrocytoma, on the other hand, 82.64% of cells overall are THY1+, while 12.31% are THY1-CD24+. Unlike IDHwt GBM, only 5.05% of cells are THY1-CD24-. Of the THY1+ cells, and regardless of the tumor grade, most cells were THY+EGFR+PDGFRA+ and comprised 79.05%-82.47% of primary IDH mutant samples. In the one grade III recurrent sample, THY1-CD24- cells increased to 11.07% and in the one grade IV recurrent sample, CD24+ cells increased to 28.54%. Of the THY1+ cells, THY1+EGFR+PDGFRA- cells increase from an average of 10.27% in primary grade III samples to 13.22% in the recurrent grade III sample, and from 18.26% in the primary grade IV sample to 74.68% in the recurrent grade IV sample. 
+In IDH mutant astrocytoma, on the other hand, 82.67% of cells overall are THY1+, while 14.75% are THY1-CD24+. Unlike IDHwt GBM, only 2.57% of cells are THY1-CD24-. More specifically, and regardless of the tumor grade, most cells were THY+EGFR+PDGFRA+ and comprised 86.89%-88.3% of primary IDH mutant samples. In the one grade IV recurrent sample, CD24+ cells increased to 26.18%. Of the THY1+ cells, THY1+EGFR+PDGFRA- cells (precursor to pre-OPCs) increased from an average of 8.11% in primary grade III samples to 12.07% in the recurrent grade III sample, and from 11.98% in the primary grade IV sample to 73.87% in the recurrent grade IV sample. THY1+EGFR+PDGFRA+ cells decreased from an average of 86.89% in the primary grade III samples to 66.59% in the recurrent grade III sample, and from 87.19% in the primary grade IV sample to 18.32% in the recurrent grade IV sample. 
 
 ```{r Figure: The cellular make-up of IDH mutant astrocytoma per grade}
 
@@ -1104,7 +1118,7 @@ ggsave("cellular_makeup_2_IDH.png", width = 10, height = 8, dpi = 300)
 
 ```
 
-We then aimed to apple the CD24/THY1/EGFR classification to IDH mutant/1p19q co-deleted samples from the Tirosh study.
+We then aimed to apple the CD24/THY1/EGFR classification to IDH mutant/1p19q co-deleted samples from the Tirosh study. Similar to IDH mutant astrocytoma, of 1p19q co-deleted oligodendrogliomas, 80.19% of cells were THY1+, 15% of cells were THY1-CD24+ and 4.72% of cells were THY1-CD24-. Figure 1 shows the cellular composition of all primary IDH mutant astrocytoma, 1p19q co-deleted oligodendroglioma and IDHwt glioblastoma samples.
 
 ```{r Tirosh 2016 data, eval = FALSE}
 
@@ -1167,17 +1181,17 @@ Tirosh_tumor_seurat <- readRDS("Tirosh_tumor_seurat.rds")
 library(Seurat)
 
 THY1_Tirosh <- FetchData(Tirosh_tumor_seurat, vars = "THY1")
-Tirosh_tumor_seurat$THY1_Tirosh <- ifelse(THY1_Tirosh > 0.1, "THY1+", "THY1-")
+Tirosh_tumor_seurat$THY1_Tirosh <- ifelse(THY1_Tirosh > 0, "THY1+", "THY1-")
 EGFR_Tirosh <- FetchData(Tirosh_tumor_seurat, vars = "EGFR")
-Tirosh_tumor_seurat$EGFR_Tirosh<- ifelse(EGFR_Tirosh > 0.1, "EGFR+", "EGFR-")
+Tirosh_tumor_seurat$EGFR_Tirosh<- ifelse(EGFR_Tirosh > 0, "EGFR+", "EGFR-")
 CD24_Tirosh <- FetchData(Tirosh_tumor_seurat, vars = "CD24")
-Tirosh_tumor_seurat$CD24_Tirosh <- ifelse(CD24_Tirosh > 0.1, "CD24+", "CD24-")
+Tirosh_tumor_seurat$CD24_Tirosh <- ifelse(CD24_Tirosh > 0, "CD24+", "CD24-")
 MGMT_Tirosh <- FetchData(Tirosh_tumor_seurat, vars = "MGMT")
-Tirosh_tumor_seurat$MGMT_Tirosh <- ifelse(MGMT_Tirosh > 0.1, "MGMT+", "MGMT-")
+Tirosh_tumor_seurat$MGMT_Tirosh <- ifelse(MGMT_Tirosh > 0, "MGMT+", "MGMT-")
 IDH1_Tirosh <- FetchData(Tirosh_tumor_seurat, vars = "IDH1")
-Tirosh_tumor_seurat$IDH1_Tirosh <- ifelse(IDH1_Tirosh > 0.1, "IDH1+", "IDH1-")
+Tirosh_tumor_seurat$IDH1_Tirosh <- ifelse(IDH1_Tirosh > 0, "IDH1+", "IDH1-")
 PDGFRA_Tirosh <- FetchData(Tirosh_tumor_seurat, vars = "PDGFRA")
-Tirosh_tumor_seurat$PDGFRA_Tirosh <- ifelse(PDGFRA_Tirosh > 0.1, "PDGFRA+", "PDGFRA-")
+Tirosh_tumor_seurat$PDGFRA_Tirosh <- ifelse(PDGFRA_Tirosh > 0, "PDGFRA+", "PDGFRA-")
 
 Tirosh_tumor_seurat$cell <- ifelse(
   Tirosh_tumor_seurat$THY1_Tirosh == "THY1+" & Tirosh_tumor_seurat$EGFR_Tirosh == "EGFR-",
@@ -1222,16 +1236,29 @@ Tirosh_tumor_seurat$cell_2 <- ifelse(
 library(tidyverse)
 library(ggplot2)
 
-CellGroupPerSample_Tirosh <- as.data.frame(cbind(
-Result1 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH36")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH36")])) * 100, 2),
-Result2 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH53")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH53")])) * 100, 2),
-Result3 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH54")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH54")])) * 100, 2),
-Result4 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH60")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH60")])) * 100, 2),
-Result5 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH93")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH93")])) * 100, 2),
-Result6 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH97")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH97")])) * 100, 2)))
+all_cell_types <- unique(Tirosh_tumor_seurat$cell)
+
+# Define a function to compute percentages, ensuring all cell types are included
+compute_percentage <- function(sample_name) {
+  counts <- table(factor(Tirosh_tumor_seurat$cell[Tirosh_tumor_seurat$sample == sample_name], levels = all_cell_types))
+  percentages <- round(counts / sum(counts) * 100, 2)  # Convert to percentage
+  return(percentages)
+}
+
+# Compute percentages for each sample
+Result1 <- compute_percentage("MGH36")
+Result2 <- compute_percentage("MGH53")
+Result3 <- compute_percentage("MGH54")
+Result4 <- compute_percentage("MGH60")
+Result5 <- compute_percentage("MGH93")
+Result6 <- compute_percentage("MGH97")  # This will now include 0s instead of missing
+
+# Combine results into a data frame
+CellGroupPerSample_Tirosh <- as.data.frame(cbind(Result1, Result2, Result3, Result4, Result5, Result6))
 
 # Assign column names
 colnames(CellGroupPerSample_Tirosh) <- c("MGH36", "MGH53", "MGH54", "MGH60", "MGH93","MGH94")
+
 # Assign row names and transform for ggplot
 CellGroupPerSample_Tirosh$Cellular_Group <- rownames(CellGroupPerSample_Tirosh)
 CellGroupPerSample_Tirosh <- pivot_longer(CellGroupPerSample_Tirosh,
@@ -1292,14 +1319,25 @@ Figure 1 shows the cellular composition IDH mutant astrocytoma, 1p19q co-deleted
 ```{r }
 
 library(dplyr)
+library(tidyr)
+library(ggplot2)
 
 CellGroupIDHwt <- as.data.frame(cbind(
   EGFRposPrimary = table(Wang_tumor_seurat$cell[which(Wang_tumor_seurat$EGFRany == "Yes" & Wang_tumor_seurat$Stage == "Primary")])/sum(table(Wang_tumor_seurat$cell[which(Wang_tumor_seurat$EGFRany == "Yes" & Wang_tumor_seurat$Stage == "Primary")])) * 100,
   EGFRnegPrimary = table(Wang_tumor_seurat$cell[which(Wang_tumor_seurat$EGFRany == "No" & Wang_tumor_seurat$Stage == "Primary")])/sum(table(Wang_tumor_seurat$cell[which(Wang_tumor_seurat$EGFRany == "No" & Wang_tumor_seurat$Stage == "Primary")])) * 100
 ))
 
-colnames(CellGroupIDHwt) <- c("IDHwt_EGFRamp", "IDHwt_EGFRwt")
-CellGroupIDHwt$cellular_group <- rownames(CellGroupIDHwt)
+CellGroupIDHwt <- CellGroupIDHwt %>%
+  mutate(cellular_group = case_when(
+    row_number() %in% c(3, 4) ~ "CD24+THY1-",  # Merging rows 3 & 4
+    row_number() %in% c(5, 6) ~ "THY1+",       # Merging rows 5 & 6
+    TRUE ~ as.character(rownames(.))           # Keep other rows unchanged
+  )) %>%
+  group_by(cellular_group) %>% 
+  summarise(across(where(is.numeric), sum, na.rm = TRUE)) 
+
+colnames(CellGroupIDHwt) <- c("cellular_group","IDHwt_EGFRamp", "IDHwt_EGFRwt")
+
 
 CellGroupIDHmutant <- as.data.frame(cbind(
   GradeII <- table(Venteicher_tumor_gradeII$cell) / sum(table(Venteicher_tumor_gradeII$cell)) * 100,
@@ -1307,25 +1345,33 @@ CellGroupIDHmutant <- as.data.frame(cbind(
   GradeIV_primary <- table(Venteicher_tumor_gradeIV_primary$cell) / sum(table(Venteicher_tumor_gradeIV_primary$cell)) * 100
 ))
 
-colnames(CellGroupIDHmutant) <- c("IDHII", "IDHIII_primary", "IDHIV_primary")
-CellGroupIDHmutant$IDHmutant <- rowMeans(CellGroupIDHmutant)
-CellGroupIDHmutant <- dplyr::select(CellGroupIDHmutant, IDHmutant)
+CellGroupIDHmutant <- CellGroupIDHmutant %>%
+  mutate(cellular_group = case_when(
+    row_number() %in% c(3, 4) ~ "CD24+THY1-",  # Merging rows 3 & 4
+    row_number() %in% c(5, 6) ~ "THY1+",       # Merging rows 5 & 6
+    TRUE ~ as.character(rownames(.))           # Keep other rows unchanged
+  )) %>%
+  group_by(cellular_group) %>% 
+  summarise(across(where(is.numeric), sum, na.rm = TRUE)) 
 
-CellGroupIDHmutant$cellular_group <- rownames(CellGroupIDHmutant)
+colnames(CellGroupIDHmutant) <- c("cellular_group","IDHII", "IDHIII_primary", "IDHIV_primary")
+CellGroupIDHmutant$IDHmutant <- rowMeans(CellGroupIDHmutant[,2:4])
+CellGroupIDHmutant <- CellGroupIDHmutant %>% select(1, 5)
 
-CellGroupOligo <- as.data.frame(cbind(
-  Result1 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH36")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH36")])) * 100, 2),
-  Result2 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH53")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH53")])) * 100, 2),
-  Result3 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH54")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH54")])) * 100, 2),
-  Result4 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH60")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH60")])) * 100, 2),
-  Result5 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH93")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH93")])) * 100, 2),
-  Result6 <- round(table(Tirosh_tumor_seurat$cell[which(Tirosh_tumor_seurat$sample == "MGH97")]) / sum(table(Tirosh_tumor_seurat$sample[which(Tirosh_tumor_seurat$sample == "MGH97")])) * 100, 2)))
+CellGroupPerSample_Tirosh <- as.data.frame(cbind(Result1, Result2, Result3, Result4, Result5, Result6))
+colnames(CellGroupPerSample_Tirosh) <- c("MGH36", "MGH53", "MGH54", "MGH60", "MGH93","MGH94")
 
-CellGroupOligo$Oligo <- rowMeans(CellGroupOligo)
-CellGroupOligo <- dplyr::select(CellGroupOligo, Oligo)
+CellGroupOligo <- CellGroupPerSample_Tirosh %>%
+  mutate(cellular_group = case_when(
+    row_number() %in% c(2, 5) ~ "CD24+THY1-",  # Merging rows 3 & 4
+    row_number() %in% c(1, 3) ~ "THY1+",       # Merging rows 5 & 6
+    TRUE ~ as.character(rownames(.))           # Keep other rows unchanged
+  )) %>%
+  group_by(cellular_group) %>% 
+  summarise(across(where(is.numeric), sum, na.rm = TRUE)) 
 
-CellGroupOligo$cellular_group <- rownames(CellGroupOligo)
-
+CellGroupOligo$Oligo <- rowMeans(CellGroupOligo[,2:7])
+CellGroupOligo <- CellGroupOligo %>% select(1, 8)
 
 combined_table <- CellGroupIDHwt %>%
   full_join(CellGroupIDHmutant, by = "cellular_group") %>%
@@ -1336,7 +1382,7 @@ rownames(combined_table) <- combined_table$cellular_group
 
 combined_table <- pivot_longer(combined_table,
                                cols= -cellular_group,
-                                          names_to = "cellular_subtype",
+                                          names_to = "Tumor_subtype",
                                           values_to = "Size")
 
 combined_table$Size <- round(combined_table$Size, 2)
@@ -1348,6 +1394,6 @@ ggplot(combined_table, aes(x = factor(Tumor_subtype, levels = desired_order), y 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 
 # Save plot
-ggsave("cellular_makeup_all.png", width = 10, height = 8, dpi = 300)
+ggsave("cellular_makeup_all.tiff", width = 10, height = 8, dpi = 300)
 
 ```
